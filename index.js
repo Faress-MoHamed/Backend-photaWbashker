@@ -9,36 +9,36 @@ import { router as categoryRouter } from "./Routes/CategoryRoute.js";
 import { router as userRouter } from "./Routes/UserRoute.js";
 import dotenv from "dotenv";
 
+dotenv.config({ path: "./.env" }); // Load environment variables at the top
 const allowedMethods = ["GET", "POST", "PUT", "DELETE"];
 
-dotenv.config({ path: "./.env" });
 const app = express();
 
-// const uploadsPath = path.resolve("uploads");
-
-app.use(cors());
-
-app.use("/uploads", express.static("uploads"));
-
-app.use(express.json());
-
+// Middlewares
 app.use(
 	cors({
 		methods: allowedMethods,
 	})
 );
-// app.use(express.urlencoded({ extended: true }));
-app.use("/", (req, res) => {
-	console.log("connected")
-	res.json("Hello World"); // Send the response
-});
+
+app.use("/uploads", express.static("uploads"));
+app.use(express.json());
+
+// Routes
 app.use("/api/products", productRouter);
-
 app.use("/api/categories", categoryRouter);
-
 app.use("/api/users", userRouter);
+
+// Root route
+app.use("/", (req, res) => {
+	console.log("Connected");
+	res.json("Hello World");
+});
+
+// Global error handler
 app.use(globalErrorHandler);
 
+// Server connection
 if (ConnectionDB) {
 	app.listen(PORT, () => {
 		console.log(`Server Running on PORT ${PORT}`);
