@@ -28,6 +28,9 @@ app.use(
 	})
 );
 // app.use(express.urlencoded({ extended: true }));
+app.use("/", (req, res) => {
+	res.json("Hello World"); // Send the response
+});
 app.use("/api/products", productRouter);
 
 app.use("/api/categories", categoryRouter);
