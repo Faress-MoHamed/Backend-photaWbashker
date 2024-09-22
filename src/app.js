@@ -1,5 +1,5 @@
 import express from "express";
-import { PORT } from "./config.js";
+import { PORT } from "../config.js";
 import { ConnectionDB } from "./Database/Connection.js";
 import { router as productRouter } from "./Routes/ProductRoute.js";
 import globalErrorHandler from "./handlers/errorController.js";
