@@ -4,29 +4,30 @@ import * as authController from "../handlers/authController.js";
 
 const router = express.Router();
 
-router.post("/signup", authController.signup);//dn
-router.post("/login", authController.login);//dn
-// router.post("/forgetPassword", authController.forgetPassword);
-// router.patch("/resetPassword", authController.resetPassword);
+// Login route (does not need protection)
+router.post("/login", authController.login);
 
-// protect all routes after this middleware
+// Protect all routes after this middleware
 router.use(authController.protect);
 
+// Add role-based restrictions after the user is authenticated
+router.use(authController.restrictTo("owner"));
+router.route("/").get(userController.getAllAdmins);
+router.post("/addAdmin", authController.addAdmin);
+
+// Routes for updating password and profile
 router.patch("/updateMyPassword", authController.updatePassword);
 router.get("/me", userController.getMe, userController.getUserById);
-//in update the user only name and email
+
+// Update user profile (only for the logged-in user)
 router.patch("/updateMe", userController.updateMe);
 
-router.use(authController.restrictTo("admin"));
-
-router
-	.route("/")
-	.get(userController.getAllUsers)
-	.post(userController.createUser);
+// Restrict the following routes to owners
+router.use(authController.restrictTo("owner"));
 router
 	.route("/:id")
 	.get(userController.getUserById)
-	.patch(userController.updateUser)
-	.delete(userController.deleteUser);
+	.patch(userController.updateAdmin)
+	.delete(userController.deleteAdmin);
 
 export { router };

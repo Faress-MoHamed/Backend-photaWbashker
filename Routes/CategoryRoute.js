@@ -36,25 +36,16 @@ router.use(express.json());
 router.get("/", getCategories);
 
 router.get("/:id", getCategoryById);
-router.use(authController.protect);
 
+router.use(authController.protect);
 // Get a category by ID
+router.use(authController.restrictTo("admin", "owner"));
 
 // Create a new category
-router.post(
-	"/",
-	authController.restrictTo("admin"),
-	uploadCategoryImage,
-	createCategory
-);
+router.post("/", uploadCategoryImage, createCategory);
 
 // Update a category by ID
-router.patch(
-	"/:id",
-	authController.restrictTo("admin"),
-	uploadCategoryImage,
-	updateCategory
-);
+router.patch("/:id", uploadCategoryImage, updateCategory);
 
 // Delete a category by ID
-router.delete("/:id", authController.restrictTo("admin"), deleteCategory);
+router.delete("/:id", deleteCategory);

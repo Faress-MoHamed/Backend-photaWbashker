@@ -3,6 +3,7 @@ import Product from "../model/productModel.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
 import path from "path";
+import sharp from "sharp";
 
 // Create a new category
 export const createCategory = async (req, res, next) => {
@@ -14,8 +15,13 @@ export const createCategory = async (req, res, next) => {
 			return next(new AppError("Please provide name and image", 400));
 		}
 
-		// Use the uploaded file path for the image
-		const image = path.normalize(req.file.path);
+		// Crop and resize the image to 250x250
+		const imagePath = `./uploads/cropped-${req.file.filename}`;
+		await sharp(req.file.path)
+			.resize(250, 250) // Crop to 250x250
+			.toFile(imagePath);
+
+		const image = path.normalize(imagePath);
 
 		const category = await Category.create({
 			name,
@@ -26,6 +32,63 @@ export const createCategory = async (req, res, next) => {
 			status: "success",
 			data: {
 				category,
+			},
+		});
+	} catch (error) {
+		next(error);
+	}
+};
+
+export const updateCategory = async (req, res, next) => {
+	try {
+		// Check if both body and file are provided
+		if (!req.body && !req.file) {
+			return res.status(400).json({
+				status: "error",
+				message: "Invalid request, no data provided",
+			});
+		}
+
+		// Prepare the update data
+		console.log(req);
+		let updateData = { ...req.body };
+
+		// If a new image is uploaded, handle the image cropping
+		if (req.file) {
+			const imagePath = `./uploads/cropped-${req.file.filename}`;
+			await sharp(req.file.path)
+				.resize(250, 250) // Crop to 250x250
+				.toFile(imagePath);
+
+			updateData.image = path.normalize(imagePath);
+		} else {
+			// If no new image is uploaded, retain the existing image from the database
+			console.log("no image");
+			const existingCategory = await Category.findById(req.params.id);
+			if (!existingCategory) {
+				return next(new AppError("No document found with that ID", 404));
+			}
+			updateData.image = existingCategory.image; // Retain the existing image
+		}
+
+		// Update the category
+		const updatedCategory = await Category.findByIdAndUpdate(
+			req.params.id,
+			updateData,
+			{
+				new: true,
+				runValidators: true,
+			}
+		);
+
+		if (!updatedCategory) {
+			return next(new AppError("No category found with that ID", 404));
+		}
+
+		res.status(200).json({
+			status: "success",
+			data: {
+				category: updatedCategory,
 			},
 		});
 	} catch (error) {
@@ -61,51 +124,6 @@ export const getCategoryById = catchAsync(async (req, res, next) => {
 		},
 	});
 });
-
-// Update a category by ID
-// Update a category by ID
-export const updateCategory = async (req, res, next) => {
-	try {
-		// Check if both body and file are provided
-		if (!req.body && !req.file) {
-			return res.status(400).json({
-				status: "error",
-				message: "Invalid request, no data provided",
-			});
-		}
-
-		// If a new image is uploaded, handle the image path
-		let updateData = { ...req.body };
-		console.log(req.body);
-		if (req.file) {
-			const image = path.normalize(req.file.path); // Normalize the file path
-			updateData.image = image; // Update image field
-		}
-
-		// Update the category
-		const updatedCategory = await Category.findByIdAndUpdate(
-			req.params.id,
-			updateData,
-			{
-				new: true,
-				runValidators: true,
-			}
-		);
-
-		if (!updatedCategory) {
-			return next(new AppError("No category found with that ID", 404));
-		}
-
-		res.status(200).json({
-			status: "success",
-			data: {
-				category: updatedCategory,
-			},
-		});
-	} catch (error) {
-		next(error);
-	}
-};
 
 // Delete a category by ID and associated products
 export const deleteCategory = catchAsync(async (req, res, next) => {

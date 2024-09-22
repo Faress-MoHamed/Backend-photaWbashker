@@ -1,31 +1,24 @@
 import crypto from "node:crypto";
-
 import mongoose from "mongoose";
 import validator from "validator";
 import bcrypt from "bcryptjs";
 
 const userSchema = new mongoose.Schema({
-	name: {
+	username: {
 		type: String,
-		requried: [true, "Please tell us your name"],
-		trim: true,
-	},
-	email: {
-		type: String,
-		required: [true, "Please tell us your email"],
-		lowercase: true,
+		required: [true, "Please provide a username"],
 		unique: true,
-		validate: [validator.isEmail, "Please provide a valid email"],
+		trim: true,
 	},
 	role: {
 		type: String,
-		enum: ["user", "admin"],
-		default: "user",
+		enum: ["owner", "admin"],
+		default: "owner",
 	},
 	password: {
 		type: String,
-		requried: [true, "Please provide a password"],
-		minLength: [8, "The password must have more or equal then 8 characters"],
+		required: [true, "Please provide a password"],
+		minLength: [8, "The password must have more or equal than 8 characters"],
 		select: false,
 	},
 	passwordConfirm: {
@@ -41,9 +34,10 @@ const userSchema = new mongoose.Schema({
 	},
 	passwordChangedAt: Date,
 	passwordResetToken: String,
-	passwordResetExprires: Date,
+	passwordResetExpires: Date,
 });
-// add new user
+
+// Hash the password before saving
 userSchema.pre("save", async function (next) {
 	if (!this.isModified("password")) return next();
 	this.password = await bcrypt.hash(this.password, 12);
@@ -58,20 +52,18 @@ userSchema.pre("save", function (next) {
 });
 
 userSchema.pre(/^find/, function (next) {
-	// this points to the current query
 	this.find({ active: { $ne: false } });
 	next();
 });
 
-// instance methods -> methods that will be exits in all documetns
+// Instance methods
 userSchema.methods.correctPassword = async function (
-	requestBodyPassowrd,
+	requestBodyPassword,
 	databaseUserPassword
 ) {
-	return await bcrypt.compare(requestBodyPassowrd, databaseUserPassword);
+	return await bcrypt.compare(requestBodyPassword, databaseUserPassword);
 };
 
-// check if the user change his password
 userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
 	if (this.passwordChangedAt) {
 		const changedTimestamp = parseInt(
@@ -89,8 +81,7 @@ userSchema.methods.createPasswordResetToken = function () {
 		.createHash("sha256")
 		.update(resetToken)
 		.digest("hex");
-	this.passwordResetExprires = Date.now() + 1000 * 60 * 1000;
-	console.log({ resetToken }, this.passwordResetToken);
+	this.passwordResetExpires = Date.now() + 10 * 60 * 1000; // Token valid for 10 minutes
 	return resetToken;
 };
 

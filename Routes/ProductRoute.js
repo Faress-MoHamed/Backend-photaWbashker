@@ -27,21 +27,14 @@ router.route("/:id").get(productController.getProductById);
 router.use(authController.protect);
 
 // Routes for products
-router
-	.route("/")
-	.post(
-		authController.restrictTo("admin"),
-		upload.single("image"),
-		productController.createProduct
-	);
+router.use(authController.restrictTo("admin", "owner")),
+	router
+		.route("/")
+		.post(upload.single("image"), productController.createProduct);
 
 router
 	.route("/:id")
-	.patch(
-		authController.restrictTo("admin"),
-		upload.single("image"),
-		productController.updateProduct
-	)
-	.delete(authController.restrictTo("admin"), productController.deleteProduct);
+	.patch(upload.single("image"), productController.updateProduct)
+	.delete(productController.deleteProduct);
 
 export { router };

@@ -33,7 +33,6 @@ export const DelteMany = (Model, ModelTwo) => {
 
 export const updateOne = (Model) => {
 	return catchAsync(async (req, res, next) => {
-		console.log(req.params.id, req.body);
 		const updatedDocument = await Model.findByIdAndUpdate(
 			req.params.id,
 			req.body,
