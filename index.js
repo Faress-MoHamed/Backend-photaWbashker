@@ -29,6 +29,7 @@ app.use(
 );
 // app.use(express.urlencoded({ extended: true }));
 app.use("/", (req, res) => {
+	console.log("connected")
 	res.json("Hello World"); // Send the response
 });
 app.use("/api/products", productRouter);
