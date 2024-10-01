@@ -5,7 +5,7 @@ dotenv.config();
 
 // Connecting to MongoDB Database
 const mongodbURI = process.env.DATABASE_URI;
-console.log(process.env.DATABASE_URI);
+// console.log(process.env.DATABASE_URI);
 export const ConnectionDB = mongoose
 	.connect(mongodbURI, {
 		useNewUrlParser: true,

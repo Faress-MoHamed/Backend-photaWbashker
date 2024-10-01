@@ -7,10 +7,11 @@ import globalErrorHandler from "./handlers/errorController.js";
 import cors from "cors";
 import { router as categoryRouter } from "./Routes/CategoryRoute.js";
 import { router as userRouter } from "./Routes/UserRoute.js";
+import { router as ReviewRouter } from "./Routes/ReviewRoute.js";
 import dotenv from "dotenv";
 
 dotenv.config({ path: "./.env" }); // Load environment variables at the top
-const allowedMethods = ["GET", "POST", "PUT", "DELETE"];
+const allowedMethods = ["GET", "POST", "PUT", "DELETE", "PATCH"];
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use(express.json());
 app.use("/api/products", productRouter);
 app.use("/api/categories", categoryRouter);
 app.use("/api/users", userRouter);
+app.use("/api/reviews", ReviewRouter);
 
 // Root route
 app.use("/", (req, res) => {
